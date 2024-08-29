@@ -1,0 +1,77 @@
+<div class="container">
+  <div class="controls">
+    <div class="search-bar">
+      <input type="text" placeholder="Поиск..." (input)="applyFilter($event)" />
+    </div>
+    <div class="column-controls">
+      <button class="column-controls-button" (click)="toggleColumnMenu()">Настроить столбцы</button>
+      <div class="column-controls-menu" [class.show]="isColumnMenuVisible">
+        <label *ngFor="let column of availableColumns">
+          <input
+            type="checkbox"
+            [checked]="displayedColumns.includes(column.key)"
+            (change)="toggleColumn(column.key)"
+          />
+          Включить столбец: {{ column.label }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th
+          *ngFor="let column of availableColumns | filterColumns: displayedColumns"
+          (click)="sort(column.key)"
+        >
+          {{ column.label }}
+          <span *ngIf="sortBy$.value === column.key">
+            {{ sortDirection$.value === 'asc' ? '▲' : '▼' }}
+          </span>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of data$ | async">
+        <td
+          *ngFor="let column of availableColumns | filterColumns: displayedColumns"
+          [attr.data-label]="column.label"
+        >
+          <ng-container [ngSwitch]="column.key">
+            <ng-container *ngSwitchCase="'picture'">
+              <img [src]="user[column.key]" alt="Image" style="max-width: 50px; max-height: 50px" />
+            </ng-container>
+            <ng-container *ngSwitchCase="'isActive'">
+              <input type="checkbox" [checked]="user[column.key]" disabled />
+            </ng-container>
+            <ng-container *ngSwitchCase="'name'">
+              {{ user[column.key]?.first + ' ' + user[column.key]?.last }}
+            </ng-container>
+            <ng-container *ngSwitchDefault>
+              {{ user[column.key] }}
+            </ng-container>
+          </ng-container>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pagination-controls">
+    <div class="page-size-selector">
+      <label for="pageSize">Записей на странице:</label>
+      <select id="pageSize" (change)="changePageSize($event)">
+        <option [value]="10" selected>10</option>
+        <option [value]="20">20</option>
+        <option [value]="50">50</option>
+        <option [value]="100">100</option>
+      </select>
+    </div>
+
+    <div class="pagination-buttons">
+      <button (click)="page$.next(page$.value - 1)" [disabled]="page$.value === 0">Назад</button>
+      <span class="page-indicator">Страница {{ page$.value + 1 }}</span>
+      <button (click)="page$.next(page$.value + 1)">Вперед</button>
+    </div>
+  </div>
+</div>
